@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"encoding/base64"
 	"io"
 	"log"
 	"math/rand"
@@ -22,6 +23,12 @@ func genRandomName(prefix string, n int) string {
 	return prefix + string(b)
 }
 
+func genName64(name string) string {
+	name64 := make([]byte, base64.StdEncoding.EncodedLen(len(name)))
+	base64.StdEncoding.Encode(name64, []byte(name))
+	return string(name64)
+}
+
 func main() {
 	r := chi.NewRouter()
 
@@ -37,13 +44,14 @@ func main() {
 		// make a pipe
 		pr, pw := io.Pipe()
 		// create dir
-		dir := genRandomName("dir", 6)
+		dir := "upload"
 		err = os.Mkdir(dir, 0755)
 		if err != nil {
 			logger.Println(err)
 			return
 		}
-		file, err := os.Create(dir + "/" + h.Filename)
+		fname := genName64(h.Filename)
+		file, err := os.Create(dir + "/" + fname)
 		if err != nil {
 			logger.Println(err)
 			return
